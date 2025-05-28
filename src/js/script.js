@@ -12,6 +12,8 @@ export let gameMode = 'playerVsComputer';
 // Helper untuk mendapatkan semua elemen sel dari DOM.
 // Fungsi ini perlu di-mock di test environment karena berinteraksi dengan DOM.
 export function getCells() {
+    // Pada saat testing, document.querySelectorAll akan di-mock.
+    // Pada saat runtime di browser, ini akan mengambil sel-sel dari DOM.
     return Array.from(document.querySelectorAll(".cell"));
 }
 
@@ -30,7 +32,7 @@ export function checkWinner() {
         const [a, b, c] = combo;
         if (cells[a].textContent && cells[a].textContent === cells[b].textContent && cells[b].textContent === cells[c].textContent) {
             // Logika highlight dan update skor TIDAK di sini.
-            // Ini akan ditangani oleh DOMContentLoaded berdasarkan hasil return `true`.
+            // Ini akan ditangani oleh fungsi yang mengelola UI (handleCellClick, computerMove).
             return true;
         }
     }
@@ -95,6 +97,7 @@ export function findBestMove() {
 
 
 // --- BAGIAN DOMContentLoaded (Interaksi dengan HTML dan Modifikasi State Game) ---
+// Bagian ini TIDAK DIEKSPOR dan menangani semua manipulasi DOM.
 document.addEventListener("DOMContentLoaded", function () {
     const board = document.getElementById("game-board");
     const gameOverMessage = document.getElementById("game-over-message");
@@ -103,12 +106,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Variabel state game yang di-export di atas, digunakan di sini.
     // JANGAN deklarasikan ulang dengan 'let' di sini.
-    // Misal, baris di bawah ini harus DIHAPUS:
-    // let currentPlayer = "X";
-    // let gameOver = false;
-    // let scoreX = 0;
-    // let scoreO = 0;
-    // let gameMode = 'playerVsComputer';
+    // Contoh:
+    // let currentPlayer = "X"; // Baris ini harus DIHAPUS
+    // let gameOver = false;    // Baris ini harus DIHAPUS
+    // let scoreX = 0;          // Baris ini harus DIHAPUS
+    // let scoreO = 0;          // Baris ini harus DIHAPUS
+    // let gameMode = 'playerVsComputer'; // Baris ini harus DIHAPUS
 
     const scoreXElement = document.getElementById("scoreX");
     const scoreOElement = document.getElementById("scoreO");
@@ -119,6 +122,23 @@ document.addEventListener("DOMContentLoaded", function () {
     function updateScoreDisplay() {
         scoreXElement.textContent = scoreX;
         scoreOElement.textContent = scoreO;
+    }
+
+    // Fungsi untuk menyorot pemenang (interaksi DOM, tidak di-export)
+    function highlightWinner(cellA, cellB, cellC) {
+        cellA.style.backgroundColor = "#8bc34a";
+        cellB.style.backgroundColor = "#8bc34a";
+        cellC.style.backgroundColor = "#8bc34a";
+    }
+
+    // Fungsi untuk menganimasikan pemenang (interaksi DOM, tidak di-export)
+    function animateWinner() {
+        const winningCells = document.querySelectorAll(".cell[style*='background-color: rgb(139, 195, 74)']");
+
+        winningCells.forEach(cell => {
+            cell.style.transition = "transform 0.5s ease-in-out";
+            cell.style.transform = "scale(1.2)";
+        });
     }
 
     // Inisialisasi papan permainan
@@ -154,14 +174,31 @@ document.addEventListener("DOMContentLoaded", function () {
             gameOverMessage.textContent = `${currentPlayer} wins!`;
             gameOverMessage.style.display = "block";
             gameOver = true; // Update global gameOver
-            animateWinner();
-            // --- LOGIKA UPDATE SKOR DI SINI ---
+            
+            // --- LOGIKA HIGHLIGHT DAN UPDATE SKOR UNTUK PEMENANG MANUSIA DI SINI ---
+            const cells = getCells(); // Dapatkan sel lagi
+            const winCombinations = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // Baris
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // Kolom
+                [0, 4, 8], [2, 4, 6]             // Diagonal
+            ];
+            // Temukan kombinasi pemenang lagi untuk menyorot
+            for (const combo of winCombinations) {
+                const [a, b, c] = combo;
+                if (cells[a].textContent && cells[a].textContent === cells[b].textContent && cells[b].textContent === cells[c].textContent) {
+                    highlightWinner(cells[a], cells[b], cells[c]); // Panggil di sini
+                    break; // Hentikan setelah menemukan combo pemenang
+                }
+            }
+            animateWinner(); // Panggil di sini
+
             if (currentPlayer === 'X') {
                 scoreX++;
             } else {
                 scoreO++;
             }
             updateScoreDisplay(); // Perbarui tampilan skor setelah kemenangan
+            restartButton.style.display = "block"; // Tampilkan tombol restart
             return; // Penting: keluar setelah pemenang ditemukan
         }
 
@@ -196,8 +233,22 @@ document.addEventListener("DOMContentLoaded", function () {
                 gameOverMessage.textContent = "O wins!";
                 gameOverMessage.style.display = "block";
                 gameOver = true;
+                
+                // --- LOGIKA HIGHLIGHT DAN UPDATE SKOR UNTUK PEMENANG KOMPUTER DI SINI ---
+                const cells = getCells(); // Dapatkan sel lagi
+                const winCombinations = [
+                    [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                    [0, 4, 8], [2, 4, 6]
+                ];
+                for (const combo of winCombinations) {
+                    const [a, b, c] = combo;
+                    if (cells[a].textContent && cells[a].textContent === cells[b].textContent && cells[b].textContent === cells[c].textContent) {
+                        highlightWinner(cells[a], cells[b], cells[c]);
+                        break;
+                    }
+                }
                 animateWinner();
-                // Update skor untuk komputer
                 scoreO++; // Karena komputer adalah O
                 updateScoreDisplay();
                 restartButton.style.display = "block";
@@ -213,22 +264,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
     }
-
-    function highlightWinner(cellA, cellB, cellC) {
-        cellA.style.backgroundColor = "#8bc34a";
-        cellB.style.backgroundColor = "#8bc34a";
-        cellC.style.backgroundColor = "#8bc34a";
-    }
-
-    function animateWinner() {
-        const winningCells = document.querySelectorAll(".cell[style*='background-color: rgb(139, 195, 74)']");
-
-        winningCells.forEach(cell => {
-            cell.style.transition = "transform 0.5s ease-in-out";
-            cell.style.transform = "scale(1.2)";
-        });
-    }
-
+    
     // Fungsi restartGame() yang dipanggil oleh tombol "Play Again"
     // window.restartGame tetap di sini karena dipanggil langsung dari HTML (onclick)
     window.restartGame = function () {
