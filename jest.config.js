@@ -1,4 +1,3 @@
-// jest.config.js
 const config = {
   transform: {
     '^.+\\.(js|jsx|mjs|cjs)$': ['babel-jest', { rootMode: "upward" }],
