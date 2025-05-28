@@ -1,5 +1,4 @@
-// jest.config.js
-/** @type {import('jest').Config} */
+@type {import('jest').Config}
 const config = {
   // Gunakan babel-jest untuk mentransformasi file JavaScript
   transform: {
