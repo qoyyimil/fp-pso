@@ -26,6 +26,9 @@ jobs:
 
     - name: Make ESLint executable
       run: chmod +x ./node_modules/.bin/eslint
+    
+    - name: Make Jest executable
+      run: chmod +x ./node_modules/.bin/jest
 
     - name: Run ESLint
       run: npm run lint 
