@@ -3,13 +3,13 @@ name: CI Pipeline
 on:
   push:
     branches:
-      - main # Ganti jika branch utama Anda bernama 'master'
+      - main 
   pull_request:
     branches:
-      - main # Ganti jika branch utama Anda bernama 'master'
+      - main 
 
 jobs:
-  lint:
+  lint-and-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,4 +28,7 @@ jobs:
       run: chmod +x ./node_modules/.bin/eslint
 
     - name: Run ESLint
-      run: npx eslint src/js/script.js
+      run: npm run lint 
+
+    - name: Run Tests
+      run: npm test 
