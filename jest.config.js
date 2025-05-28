@@ -1,6 +1,8 @@
 const config = {
-  transform: {},
-  moduleFileExtensions: ['js', 'mjs', 'cjs', 'json', 'node'],
+  transform: {
+    '^.+\\.(js|jsx|mjs|cjs)$': ['babel-jest', { rootMode: "upward" }],
+  },
+  moduleFileExtensions: ['js', 'mjs', 'cjs', 'jsx', 'json', 'node'],
   testEnvironment: 'jsdom',
 };
 
