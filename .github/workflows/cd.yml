@@ -1,14 +1,23 @@
-name: CD Pipeline
+# .github/workflows/cd.yml
+name: CD Pipeline Vercel
 
 on:
-  workflow_run: 
-    workflows: ["CI Pipeline"] 
+  workflow_run: # Pemicu ini sangat penting untuk memisahkan CI dan CD
+    workflows: ["CI Pipeline"] # Akan terpicu setelah workflow dengan nama "CI Pipeline" selesai
     types:
-      - completed 
+      - completed # Hanya terpicu ketika workflow "CI Pipeline" selesai (completed)
+  push: # Opsional: jika Anda ingin deploy langsung saat push ke main (tapi kondisi if akan memfilter)
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: production # Opsional: Mendefinisikan environment deployment (baik untuk visualisasi di GH)
+
+    # Kondisi untuk deployment:
+    # Hanya deploy jika workflow pemicu (CI Pipeline) sukses DAN berasal dari 'main' branch,
+    # ATAU jika ada push langsung ke main.
     if: |
       github.event_name == 'push' && github.ref == 'refs/heads/main' ||
       github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
@@ -17,8 +26,17 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./
+    - name: Install Vercel CLI
+      run: npm install --global vercel@latest # Menginstal Vercel CLI global
+
+    - name: Pull Vercel Environment Information
+      run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      env:
+        VERCEL_ORG_ID: <YOUR_VERCEL_ORG_ID> # Ganti dengan Vercel Org ID Anda
+        VERCEL_PROJECT_ID: <YOUR_VERCEL_PROJECT_ID> # Ganti dengan Vercel Project ID Anda
+
+    - name: Deploy to Vercel
+      run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+      env:
+        VERCEL_ORG_ID: <YOUR_VERCEL_ORG_ID> # Ganti dengan Vercel Org ID Anda
+        VERCEL_PROJECT_ID: <YOUR_VERCEL_PROJECT_ID> # Ganti dengan Vercel Project ID Anda
