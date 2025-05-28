@@ -1,4 +1,3 @@
-@type {import('jest').Config} */
 const config = {
   transform: {},
   moduleFileExtensions: ['js', 'mjs', 'cjs', 'json', 'node'],
