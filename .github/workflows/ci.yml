@@ -10,21 +10,22 @@ on:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest # Jalankan job ini di Ubuntu terbaru
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3 # Mendapatkan kode dari repositori
+      uses: actions/checkout@v3
 
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '18' # Gunakan versi Node.js yang sesuai dengan proyek Anda (misal: '18', '20')
+        node-version: '18'
 
     - name: Install dependencies
-      run: npm install # Menginstal semua dependensi dari package.json, termasuk ESLint
+      run: npm install
+
+    - name: Make ESLint executable
+      run: chmod +x ./node_modules/.bin/eslint
 
     - name: Run ESLint
-      # Perhatikan: Sesuaikan path jika Anda memiliki file JS lain yang ingin dilinting.
-      # Jika Anda menggunakan eslint.config.mjs, perintah npx eslint akan secara otomatis menemukannya.
       run: npx eslint src/js/script.js
